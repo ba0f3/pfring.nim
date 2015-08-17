@@ -44,21 +44,41 @@ proc close*(r: Ring) =
   pfring_close(r.cptr)
 
 proc readPacketDataTo*(r: Ring, buffer: ptr string) =
-  var res = pfring_recv(r.cptr, addr r.buffer, r.buffer.len, r.header, 1)
-  if res != Ok:
-    return
+  let res = pfring_recv(r.cptr, addr r.buffer, r.buffer.len, r.header, 1)
+  if res != 1 and res != 0:
+    raise newException(SystemError, "Unable to read data, error code: " & $res)
   buffer[] = $r.buffer[0..r.header.caplen]
 
 proc readPacketData*(r: Ring): string =
   result = ""
   r.readPacketDataTo(addr result)
 
+proc readParsedDataTo*(r: Ring, buffer: ptr string) =
+  let res = pfring_recv_parsed(r.cptr, addr r.buffer, r.buffer.len, r.header, 1, 4, 1, 1)
+  #if res != 1 and res != 0:
+  #  raise newException(SystemError, "Unable to read data, error code: " & $res)
+  discard pfring_print_parsed_pkt(buffer[], buffer[].len, $r.buffer, r.header)
+
+proc readParsedData*(r: Ring): string =
+  result = ""
+  r.readParsedDataTo(addr result)
+
 proc enable*(r: Ring) =
-  var res = pfring_enable_ring(r.cptr)
+  let res = pfring_enable_ring(r.cptr)
   if res != 0:
     raise newException(SystemError, "Unable to enable ring, error code " & $res)
 
 proc disable*(r: Ring) =
-  var res = pfring_disable_ring(r.cptr)
+  let res = pfring_disable_ring(r.cptr)
   if res != 0:
     raise newException(SystemError, "Unable to disable ring, error code " & $res)
+
+proc setBPFFilter*(r: Ring, filter: string) =
+  let res = pfring_set_bpf_filter(r.cptr, filter)
+  if res != 0:
+    raise newException(SystemError, "Unable to set BPF filter, error code: " & $res)
+
+proc removeBPFFilter*(r: Ring) =
+  let res = pfring_remove_bpf_filter(r.cptr)
+  if res != 0:
+    raise newException(SystemError, "Unable to remove BPF filter, error code: " & $res)

@@ -2,13 +2,16 @@ import pfring/types
 import pfring/core
 
 
-var ring = newRing("eth1", 1024, PF_RING_ZC_SYMMETRIC_RSS)
+var ring = newRing("eth1", 65536, PF_RING_PROMISC)
 if ring.isNil:
   quit "pfring_open error"
 
+#ring.setBPFFilter("tcp and port 22")
 ring.enable()
+
+var buf = newString(512)
 while true:
-  var buf = ring.readPacketData()
-  echo buf
-  echo ring.header.caplen, " ", ring.header.length, " ", buf.len
+  ring.readParsedDataTo(addr buf)
+  if buf.len > 0:
+    echo buf
 ring.close()

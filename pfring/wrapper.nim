@@ -20,7 +20,7 @@ proc pfring_breakloop*(ring: pfring) {.pf.}
 proc pfring_close*(ring: pfring) {.pf.}
 proc pfring_stats*(ring: pfring, stats: pfring_stat): cint {.pf.}
 proc pfring_recv*(ring: pfring, buf: ptr, bufLen: int, hdr: pfring_pkthdr, wfip: uint8): cint {.pf.}
-proc pfring_recv_parsed*(ring: pfring, buf: pointer, bufLen: cint, hdr: pfring_pkthdr, wfip, level, addTimestamp, addHash: uint8): cint {.pf.}
+proc pfring_recv_parsed*(ring: pfring, buf: ptr, bufLen: int, hdr: pfring_pkthdr, wfip, level, addTimestamp, addHash: uint8): cint {.pf.}
 proc pfring_set_poll_watermark*(ring: pfring, watermark: uint16): cint {.pf.}
 proc pfring_set_poll_duration*(ring: pfring, duration: cuint): cint {.pf.}
 proc pfring_set_tx_watermark*(ring: pfring, watermark: uint16): cint {.pf.}
@@ -105,8 +105,8 @@ proc pfring_format_numbers*(val: cdouble, buf: cstring, buf_len: cuint, add_deci
 proc pfring_enable_hw_timestamp*(ring: pfring, device_name: cstring, enable_rx, enable_tx: uint8): cint {.pf.}
 proc pfring_get_mtu_size*(ring: pfring): cint {.pf.}
 proc pfring_get_card_settings*(ring: pfring, settings: pfring_card_settings): cint {.pf.}
-proc pfring_print_parsed_pkt*(buff: cstring, buff_len: cuint, p: cstring, h: pfring_pkthdr): cint {.pf.}
-proc pfring_print_pkt*(buff: cstring, buff_len: cuint, p: cstring, length, caplen: cuint): cint {.pf.}
+proc pfring_print_parsed_pkt*(buff: string, buff_len: int, p: cstring, h: pfring_pkthdr): cint {.pf.}
+proc pfring_print_pkt*(buff: cstring, buff_len: int, p: cstring, length, caplen: cuint): cint {.pf.}
 proc pfring_recv_chunk*(ring: pfring, chunk: pointer, chunk_len: cuint, wait_for_incoming_chunk: uint8): cint {.pf.}
 proc pfring_set_bound_dev_name*(ring: pfring, custom_dev_name: cstring): cint {.pf.}
 proc pfring_read_ixia_hw_timestamp*(buffer: cstring, buffer_len: uint32, ts: Timespec): cint {.pf.}
