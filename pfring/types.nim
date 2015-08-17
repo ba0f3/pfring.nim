@@ -3,10 +3,30 @@ import times
 
 type
   pfring* {.final, pure.} = ref object
+  sk_buff* {.final, pure.} = ref object
+  pfring_extended_pkthdr_tx* {.final, pure.} = ref object
+    bounce_interface*: cint
+    reserved*: sk_buff
+
+  pkt_parsing_info* {.final, pure.} = ref object
+    dmac*: uint8
+    smac*: uint8
+
+  pfring_extended_pkthdr* {.final, pure.} = ref object
+    timestamp_ns*: uint64
+    flags*: uint32
+    rx_direction*: uint8
+    if_index*: int32
+    pkt_hash*: uint32
+    tx*: pfring_extended_pkthdr_tx
+    parsed_header_len*: uint16
+    parsed_pkt*: pkt_parsing_info
+
   pfring_pkthdr* {.final, pure.} = ref object
-    ts*: Timespec
+    ts*: Timeval
     caplen*: cint
     length*: cint
+    extended_pkthdr*: pfring_extended_pkthdr
 
 
   pfring_stat* {.final, pure.} = ref object

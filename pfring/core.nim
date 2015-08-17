@@ -53,15 +53,21 @@ proc readPacketData*(r: Ring): string =
   result = ""
   r.readPacketDataTo(addr result)
 
-proc readParsedDataTo*(r: Ring, buffer: ptr string) =
+proc readParsedPacketDataTo*(r: Ring, buffer: ptr string) =
   let res = pfring_recv_parsed(r.cptr, addr r.buffer, r.buffer.len, r.header, 1, 4, 1, 1)
-  #if res != 1 and res != 0:
-  #  raise newException(SystemError, "Unable to read data, error code: " & $res)
-  discard pfring_print_parsed_pkt(buffer[], buffer[].len, $r.buffer, r.header)
+  if res < 0:
+    raise newException(SystemError, "Unable to read data, error code: " & $res)
+  buffer[] = $r.buffer[0..r.header.caplen]
 
-proc readParsedData*(r: Ring): string =
+proc readParsedPacketData*(r: Ring): string =
   result = ""
-  r.readParsedDataTo(addr result)
+  r.readParsedPacketDataTo(addr result)
+
+proc printParsedPacket*(r: Ring) =
+  var buffer = newString(512)
+  discard pfring_print_parsed_pkt(buffer, buffer.len, $r.buffer, r.header)
+  #discard pfring_parse_pkt(buffer, r.header, 4, 1, 1)
+  echo buffer
 
 proc enable*(r: Ring) =
   let res = pfring_enable_ring(r.cptr)
