@@ -30,11 +30,30 @@ type
 
 
   pfring_stat* {.final, pure.} = ref object
+    recv*: uint64
+    drop*: uint64
+
   pfringProcessPacket* {.final, pure.} = ref object
   hw_filtering_rule* {.final, pure.} = ref object
-  packet_direction* {.final, pure.} = ref object
-  socket_mode* {.final, pure.} = ref object
-  cluster_type* {.final, pure.} = ref object
+
+  packet_direction* = enum
+    rx_and_tx_direction,
+    rx_only_direction,
+    tx_only_direction
+
+  socket_mode* = enum
+    send_and_recv_mode,
+    send_only_mode,
+    recv_only_mode
+
+  cluster_type* = enum
+    cluster_per_flow,
+    cluster_round_robin,
+    cluster_per_flow_2_tuple,
+    cluster_per_flow_4_tuple,
+    cluster_per_flow_5_tuple,
+    cluster_per_flow_tcp_5_tuple
+
   hash_filtering_rule* {.final, pure.} = ref object
   filtering_rule* {.final, pure.} = ref object
   virtual_filtering_device_info* {.final, pure.} = ref object

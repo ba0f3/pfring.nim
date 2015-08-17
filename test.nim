@@ -8,7 +8,7 @@ if ring.isNil:
 
 #ring.setBPFFilter("tcp and port 22")
 ring.enable()
-
+ring.setDirection(ReceiveOnly)
 var buf = newString(512)
 while true:
   ring.readParsedPacketDataTo(addr buf)
