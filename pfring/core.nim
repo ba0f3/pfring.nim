@@ -64,7 +64,7 @@ proc readPacketDataTo*(r: Ring, buffer: ptr string) =
   let res = pfring_recv(r.cptr, addr r.buffer, r.buffer.len, r.header, 1)
   if res != 1 and res != 0:
     raise newException(SystemError, "Unable to read data, error code: " & $res)
-  buffer[] = $r.buffer[0..r.header.caplen]
+  buffer[] = $r.buffer[0..r.header.caplen.int]
 
 proc readPacketData*(r: Ring): string =
   result = ""
@@ -74,18 +74,18 @@ proc readParsedPacketDataTo*(r: Ring, buffer: ptr string) =
   let res = pfring_recv_parsed(r.cptr, addr r.buffer, r.buffer.len, r.header, 1, 4, 1, 1)
   if res < 0:
     raise newException(SystemError, "Unable to read data, error code: " & $res)
-  buffer[] = $r.buffer[0..r.header.caplen]
+  buffer[] = $r.buffer[0..r.header.caplen.int]
 
 proc readParsedPacketData*(r: Ring): string =
   result = ""
   r.readParsedPacketDataTo(addr result)
 
-proc writePacketData(r: Ring, data: string) =
+proc writePacketData*(r: Ring, data: string) =
   let res = pfring_send(r.cptr, data.cstring, data.len.cuint, 1)
   if res < 0:
     raise newException(SystemError, "Unable to send packet data, error code: " & $res)
 
-proc getStats(r: Ring): Stats =
+proc getStats*(r: Ring): Stats =
   new(result)
   var stat: pfring_stat
   new(stat)
