@@ -6,9 +6,18 @@ var ring = newRing("eth1", 65536, PF_RING_PROMISC)
 if ring.isNil:
   quit "pfring_open error"
 
-#ring.setBPFFilter("tcp and port 22")
+proc signalHandler() {.noconv.} =
+  var stat = ring.getStats()
+  echo "Received " & $stat.received & " packets, dropped " & $stat.dropped & " packets"
+  ring.close()
+
+setControlCHook(signalHandler)
+
+
+ring.setBPFFilter("tcp and port 80")
 ring.enable()
-#ring.setDirection(ReceiveOnly)
+ring.setDirection(ReceiveOnly)
+#ring.setSocketMode(ReadOnly)
 var buf = newString(512)
 while true:
   ring.readParsedPacketDataTo(addr buf)
@@ -24,5 +33,3 @@ while true:
     echo "ACK"
   else:
     echo "UKN"
-
-ring.close()
