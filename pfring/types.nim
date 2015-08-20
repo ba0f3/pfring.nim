@@ -73,7 +73,7 @@ type
     parsed_header_len*: uint16
     parsed_pkt*: pkt_parsing_info
 
-  pfring_pkthdr* {.pf.} = ref object
+  pfring_pkthdr* {.pf.} = object
     ts*: Timeval
     caplen*: cuint
     length*: cuint

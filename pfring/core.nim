@@ -48,10 +48,7 @@ proc newRing*(device, appname: string, caplen, flags: uint32): Ring =
   if result.cptr.isNil:
     raise newException(SystemError, "Unable to open " & device & " for capturing")
   result.caplen = caplen.int
-  new(result.header)
   result.buffer = newSharedString(caplen)
-
-
   result.setApplicationName(appname)
 
 proc newRing*(device: string, caplen, flags: uint32): Ring =
@@ -66,7 +63,7 @@ proc readPacketData*(r: Ring) =
     raise newException(SystemError, "Unable to read data, error code: " & $res)
 
 proc readPacketDataTo*(r: Ring, buffer: ptr string) =
-  r.readPacketData(addr result)
+  r.readPacketData()
   buffer[] = $r.buffer[0..r.header.caplen.int]
 
 proc readParsedPacketData*(r: Ring) =
