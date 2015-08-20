@@ -7,8 +7,8 @@ type
   Ring* = ref object
     cptr*: ptr pfring
     caplen*: int
-    header*: ptr pfring_pkthdr
-    buffer*: ptr cstring
+    header*: pfring_pkthdr
+    buffer*: cstring
 
   Stats* = ref object
     received*: uint64
@@ -57,22 +57,22 @@ proc close*(r: Ring) =
   pfring_close(r.cptr)
 
 proc readPacketData*(r: Ring) =
-  let res = pfring_recv(r.cptr, addr r.buffer, r.buffer[].len.uint, r.header, 1)
+  let res = pfring_recv(r.cptr, addr r.buffer, r.buffer.len.uint, addr r.header, 1)
   if res != 1 and res != 0:
     raise newException(SystemError, "Unable to read data, error code: " & $res)
 
 proc readPacketDataTo*(r: Ring, buffer: ptr string) =
   r.readPacketData()
-  buffer[] = ($r.buffer[])[0..r.header.caplen.int]
+  buffer[] = ($r.buffer)[0..r.header.caplen.int]
 
 proc readParsedPacketData*(r: Ring) =
-  let res = pfring_recv_parsed(r.cptr, addr r.buffer, r.buffer[].len.uint, r.header, 1, 4, 1, 1)
+  let res = pfring_recv_parsed(r.cptr, addr r.buffer, r.buffer.len.uint, addr r.header, 1, 4, 1, 1)
   if res < 0:
     raise newException(SystemError, "Unable to read data, error code: " & $res)
 
 proc readParsedPacketDataTo*(r: Ring, buffer: ptr string) =
   r.readParsedPacketData()
-  buffer[] = ($r.buffer[])[0..r.header.caplen.int]
+  buffer[] = ($r.buffer)[0..r.header.caplen.int]
 
 proc writePacketData*(r: Ring, data: string) =
   let res = pfring_send(r.cptr, data.cstring, data.len.cuint, 1)
@@ -93,7 +93,7 @@ proc getStats*(r: Ring): Stats =
 proc printParsedPacket*(r: Ring) =
   var buffer = newString(512)
 
-  discard pfring_print_parsed_pkt(buffer, buffer.len.uint, r.buffer, r.header)
+  discard pfring_print_parsed_pkt(buffer, buffer.len.uint, addr r.buffer, addr r.header)
   #discard pfring_parse_pkt(buffer, r.header, 4, 1, 1)
   echo buffer
 

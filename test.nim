@@ -1,6 +1,6 @@
 import pfring/core
 
-var ring = newRing("eth1", 65536, PF_RING_PROMISC)
+var ring = newRing("any", 65536, PF_RING_PROMISC)
 if ring.isNil:
   quit "pfring_open error"
 

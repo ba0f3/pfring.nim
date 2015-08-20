@@ -10,24 +10,14 @@
 #
 #
 
-#*
-#  @mainpage  Main Page
-#
-#             PF_RING API documentation.
-#
-#*
-#  @file pfring.h
-#
-#  @brief      PF_RING library header file.
-#  @details    This header file must be included in any PF_RING-based applications.
-#
+{.passL: "-lpfring -lpcap -lnuma -lrt".}
 
 import posix
 
 const
-  MAX_CAPLEN* = 65535
   libpfring = "libpfring.so"
 
+  MAX_CAPLEN* = 65535
   TH_FIN* = 0x01
   TH_SYN* = 0x02
   TH_RST* = 0x04
@@ -41,7 +31,7 @@ const
 {.pragma: st,
   pure,
   final,
-#  header: "<linux/pf_ring.h>",
+  header: "<linux/pf_ring.h>",
   importc: "struct $1"
 .}
 
@@ -222,7 +212,7 @@ type
     priv_data*: pointer       # module private data
     close*: proc (a2: ptr pfring) {.cdecl.}
     stats*: proc (a2: ptr pfring; a3: ptr pfring_stat): cint {.cdecl.}
-    recv*: proc (a2: ptr pfring; a3: ptr ptr cstring; a4: u_int;
+    recv*: proc (a2: ptr pfring; a3: ptr cstring; a4: u_int;
                  a5: ptr pfring_pkthdr; a6: uint8): cint {.cdecl.}
     set_poll_watermark*: proc (a2: ptr pfring; a3: uint16): cint {.cdecl.}
     set_poll_duration*: proc (a2: ptr pfring; a3: u_int): cint {.cdecl.}
@@ -327,7 +317,7 @@ type
     dna_enable*: proc (a2: ptr pfring): cint {.cdecl.}
     dna_check_packet_to_read*: proc (a2: ptr pfring; a3: uint8): uint8 {.
         cdecl.}
-    dna_next_packet*: proc (a2: ptr pfring; a3: ptr ptr cstring; a4: u_int;
+    dna_next_packet*: proc (a2: ptr pfring; a3: ptr cstring; a4: u_int;
                             a5: ptr pfring_pkthdr): ptr cstring {.cdecl.}
     dna_get_num_tx_slots*: proc (ring: ptr pfring): u_int {.cdecl.}
     dna_get_num_rx_slots*: proc (ring: ptr pfring): u_int {.cdecl.}
@@ -424,7 +414,7 @@ const
 #
 
 proc pfring_open*(device_name: cstring; caplen: uint32; flags: uint32): ptr pfring {.
-    cdecl, importc: "pfring_open", dynlib: libpfring.}
+    cdecl, importc: "pfring_open".}
 #*
 #  Same as pfring_open(), but initializes a kernel plugin for packet processing.
 #  @param device_name
@@ -439,7 +429,7 @@ proc pfring_open*(device_name: cstring; caplen: uint32; flags: uint32): ptr pfri
 proc pfring_open_consumer*(device_name: cstring; caplen: uint32;
                            flags: uint32; consumer_plugin_id: uint8;
                            consumer_data: cstring; consumer_data_len: u_int): ptr pfring {.
-    cdecl, importc: "pfring_open_consumer", dynlib: libpfring.}
+    cdecl, importc: "pfring_open_consumer".}
 #*
 #  This call is similar to pfring_open() with the exception that in case of a multi RX-queue NIC,
 #  instead of opening a single ring for the whole device, several individual rings are open (one per RX-queue).
@@ -454,7 +444,7 @@ proc pfring_open_consumer*(device_name: cstring; caplen: uint32;
 proc pfring_open_multichannel*(device_name: cstring; caplen: uint32;
                                flags: uint32;
                                ring: array[32, ptr pfring]): uint8 {.
-    cdecl, importc: "pfring_open_multichannel", dynlib: libpfring.}
+    cdecl, importc: "pfring_open_multichannel".}
 #*
 #  Shutdown a socket.
 #  @param ring The PF_RING handle.
@@ -480,7 +470,7 @@ proc pfring_config*(cpu_percentage: cushort) {.cdecl, importc: "pfring_config",
 
 proc pfring_loop*(ring: ptr pfring; looper: proc (h: ptr pfring_pkthdr, p: ptr cstring, user_bytes: ptr cstring);
                   user_bytes: ptr cstring; wait_for_packet: uint8): cint {.
-    cdecl, importc: "pfring_loop", dynlib: libpfring.}
+    cdecl, importc: "pfring_loop".}
 #*
 #  Break a receive loop (pfring_loop() or blocking pfring_recv()).
 #  @param ring The PF_RING handle.
@@ -504,7 +494,7 @@ proc pfring_close*(ring: ptr pfring) {.cdecl, importc: "pfring_close",
 #
 
 proc pfring_stats*(ring: ptr pfring; stats: ptr pfring_stat): cint {.cdecl,
-    importc: "pfring_stats", dynlib: libpfring.}
+    importc: "pfring_stats".}
 #*
 #  This call returns an incoming packet when available.
 #  @param ring       The PF_RING handle where we perform the check.
@@ -519,9 +509,9 @@ proc pfring_stats*(ring: ptr pfring; stats: ptr pfring_stat): cint {.cdecl,
 #  @return 0 in case of no packet being received (non-blocking), 1 in case of success, -1 in case of error.
 #
 
-proc pfring_recv*(ring: ptr pfring; buffer: ptr ptr cstring; buffer_len: u_int;
+proc pfring_recv*(ring: ptr pfring; buffer: ptr cstring; buffer_len: u_int;
                   hdr: ptr pfring_pkthdr; wait_for_incoming_packet: uint8): cint {.
-    cdecl, importc: "pfring_recv", dynlib: libpfring.}
+    cdecl, importc: "pfring_recv".}
 #*
 #  Same of pfring_recv(), with additional parameters to force packet parsing.
 #  @param ring
@@ -535,12 +525,12 @@ proc pfring_recv*(ring: ptr pfring; buffer: ptr ptr cstring; buffer_len: u_int;
 #  @return 0 in case of no packet being received (non-blocking), 1 in case of success, -1 in case of error.
 #
 
-proc pfring_recv_parsed*(ring: ptr pfring; buffer: ptr ptr cstring;
+proc pfring_recv_parsed*(ring: ptr pfring; buffer: ptr cstring;
                          buffer_len: u_int; hdr: ptr pfring_pkthdr;
                          wait_for_incoming_packet: uint8; level: uint8; #
                                                                               # 1..4
                          add_timestamp: uint8; add_hash: uint8): cint {.
-    cdecl, importc: "pfring_recv_parsed", dynlib: libpfring.}
+    cdecl, importc: "pfring_recv_parsed".}
 #*
 #  Whenever a user-space application has to wait until incoming packets arrive, it can instruct PF_RING not to return from poll() call
 #  unless at least “watermark” packets have been returned. A low watermark value such as 1, reduces the latency of poll() but likely
@@ -553,7 +543,7 @@ proc pfring_recv_parsed*(ring: ptr pfring; buffer: ptr ptr cstring;
 #
 
 proc pfring_set_poll_watermark*(ring: ptr pfring; watermark: uint16): cint {.
-    cdecl, importc: "pfring_set_poll_watermark", dynlib: libpfring.}
+    cdecl, importc: "pfring_set_poll_watermark".}
 #*
 #  Set the poll timeout when passive wait is used.
 #  @param ring     The PF_RING handle to enable.
@@ -562,7 +552,7 @@ proc pfring_set_poll_watermark*(ring: ptr pfring; watermark: uint16): cint {.
 #
 
 proc pfring_set_poll_duration*(ring: ptr pfring; duration: u_int): cint {.cdecl,
-    importc: "pfring_set_poll_duration", dynlib: libpfring.}
+    importc: "pfring_set_poll_duration".}
 #*
 #  Set the number of packets that have to be enqueued in the egress queue before being sent on the wire.
 #  @param ring      The PF_RING handle to enable.
@@ -571,7 +561,7 @@ proc pfring_set_poll_duration*(ring: ptr pfring; duration: u_int): cint {.cdecl,
 #
 
 proc pfring_set_tx_watermark*(ring: ptr pfring; watermark: uint16): cint {.
-    cdecl, importc: "pfring_set_tx_watermark", dynlib: libpfring.}
+    cdecl, importc: "pfring_set_tx_watermark".}
 #*
 #  Set a specified filtering rule into the NIC. Note that no PF_RING filter is added, but only a NIC filter.
 #
@@ -587,7 +577,7 @@ proc pfring_set_tx_watermark*(ring: ptr pfring; watermark: uint16): cint {.
 #
 
 proc pfring_add_hw_rule*(ring: ptr pfring; rule: ptr hw_filtering_rule): cint {.
-    cdecl, importc: "pfring_add_hw_rule", dynlib: libpfring.}
+    cdecl, importc: "pfring_add_hw_rule".}
 #*
 #  Remove the specified filtering rule from the NIC.
 #  @param ring The PF_RING handle on which the rule will be removed.
@@ -596,7 +586,7 @@ proc pfring_add_hw_rule*(ring: ptr pfring; rule: ptr hw_filtering_rule): cint {.
 #
 
 proc pfring_remove_hw_rule*(ring: ptr pfring; rule_id: uint16): cint {.cdecl,
-    importc: "pfring_remove_hw_rule", dynlib: libpfring.}
+    importc: "pfring_remove_hw_rule".}
 #*
 #  Set the device channel id to be used.
 #  @param ring       The PF_RING handle.
@@ -605,7 +595,7 @@ proc pfring_remove_hw_rule*(ring: ptr pfring; rule_id: uint16): cint {.cdecl,
 #
 
 proc pfring_set_channel_id*(ring: ptr pfring; channel_id: uint32): cint {.
-    cdecl, importc: "pfring_set_channel_id", dynlib: libpfring.}
+    cdecl, importc: "pfring_set_channel_id".}
 #*
 #  Set the channel mask to be used for packet capture.
 #  @param ring         The PF_RING handle.
@@ -614,7 +604,7 @@ proc pfring_set_channel_id*(ring: ptr pfring; channel_id: uint32): cint {.
 #
 
 proc pfring_set_channel_mask*(ring: ptr pfring; channel_mask: uint64): cint {.
-    cdecl, importc: "pfring_set_channel_mask", dynlib: libpfring.}
+    cdecl, importc: "pfring_set_channel_mask".}
 #*
 #  Tell PF_RING the name of the application (usually argv[0]) that uses this ring. This information is used to identify the application
 #  when accessing the files present in the PF_RING /proc filesystem.
@@ -628,7 +618,7 @@ proc pfring_set_channel_mask*(ring: ptr pfring; channel_mask: uint64): cint {.
 #
 
 proc pfring_set_application_name*(ring: ptr pfring; name: cstring): cint {.
-    cdecl, importc: "pfring_set_application_name", dynlib: libpfring.}
+    cdecl, importc: "pfring_set_application_name".}
 #*
 #  Set custom application statistics.
 #  @param ring The PF_RING handle.
@@ -637,7 +627,7 @@ proc pfring_set_application_name*(ring: ptr pfring; name: cstring): cint {.
 #
 
 proc pfring_set_application_stats*(ring: ptr pfring; stats: cstring): cint {.
-    cdecl, importc: "pfring_set_application_stats", dynlib: libpfring.}
+    cdecl, importc: "pfring_set_application_stats".}
 #*
 #  Return the filename where the application statistics can be read.
 #  @param ring     The PF_RING handle.
@@ -648,7 +638,7 @@ proc pfring_set_application_stats*(ring: ptr pfring; stats: cstring): cint {.
 
 proc pfring_get_appl_stats_file_name*(ring: ptr pfring; path: cstring;
                                       path_len: u_int): cstring {.cdecl,
-    importc: "pfring_get_appl_stats_file_name", dynlib: libpfring.}
+    importc: "pfring_get_appl_stats_file_name".}
 #*
 #  Bind a socket to a device.
 #  @param ring        The PF_RING handle.
@@ -657,7 +647,7 @@ proc pfring_get_appl_stats_file_name*(ring: ptr pfring; path: cstring;
 #
 
 proc pfring_bind*(ring: ptr pfring; device_name: cstring): cint {.cdecl,
-    importc: "pfring_bind", dynlib: libpfring.}
+    importc: "pfring_bind".}
 #*
 #  Send a raw packet (i.e. it is sent on wire as specified). This packet must be fully specified (the MAC address up)
 #  and it will be transmitted as-is without any further manipulation.
@@ -689,7 +679,7 @@ proc pfring_send*(ring: ptr pfring; pkt: cstring; pkt_len: u_int;
 
 proc pfring_send_ifindex*(ring: ptr pfring; pkt: cstring; pkt_len: u_int;
                           flush_packet: uint8; if_index: cint): cint {.cdecl,
-    importc: "pfring_send_ifindex", dynlib: libpfring.}
+    importc: "pfring_send_ifindex".}
 #*
 #  Same as pfring_send(), but this function allows to send a raw packet returning the exact time (ns) it has been sent on the wire.
 #  Note that this is available when the adapter supports tx hardware timestamping only and might affect performance.
@@ -702,7 +692,7 @@ proc pfring_send_ifindex*(ring: ptr pfring; pkt: cstring; pkt_len: u_int;
 
 proc pfring_send_get_time*(ring: ptr pfring; pkt: cstring; pkt_len: u_int;
                            ts: ptr Timespec): cint {.cdecl,
-    importc: "pfring_send_get_time", dynlib: libpfring.}
+    importc: "pfring_send_get_time".}
 #*
 #  Returns the number of RX channels (also known as RX queues) of the ethernet interface to which this ring is bound.
 #  @param ring The PF_RING handle to query.
@@ -710,7 +700,7 @@ proc pfring_send_get_time*(ring: ptr pfring; pkt: cstring; pkt_len: u_int;
 #
 
 proc pfring_get_num_rx_channels*(ring: ptr pfring): uint8 {.cdecl,
-    importc: "pfring_get_num_rx_channels", dynlib: libpfring.}
+    importc: "pfring_get_num_rx_channels".}
 #*
 #  Implement packet sampling directly into the kernel. Note that this solution is much more efficient than implementing it in user-space.
 #  Sampled packets are only those that pass all filters (if any).
@@ -720,7 +710,7 @@ proc pfring_get_num_rx_channels*(ring: ptr pfring): uint8 {.cdecl,
 #
 
 proc pfring_set_sampling_rate*(ring: ptr pfring; rate: uint32): cint {.cdecl,
-    importc: "pfring_set_sampling_rate", dynlib: libpfring.}
+    importc: "pfring_set_sampling_rate".}
   # 1 = no sampling
 #*
 #  Returns the file descriptor associated to the specified ring.
@@ -730,7 +720,7 @@ proc pfring_set_sampling_rate*(ring: ptr pfring; rate: uint32): cint {.cdecl,
 #
 
 proc pfring_get_selectable_fd*(ring: ptr pfring): cint {.cdecl,
-    importc: "pfring_get_selectable_fd", dynlib: libpfring.}
+    importc: "pfring_get_selectable_fd".}
 #*
 #  Tell PF_RING to consider only those packets matching the specified direction. If the application does not call this function,
 #  all the packets (regardless of the direction, either RX or TX) are returned.
@@ -740,7 +730,7 @@ proc pfring_get_selectable_fd*(ring: ptr pfring): cint {.cdecl,
 #
 
 proc pfring_set_direction*(ring: ptr pfring; direction: packet_direction): cint {.
-    cdecl, importc: "pfring_set_direction", dynlib: libpfring.}
+    cdecl, importc: "pfring_set_direction".}
 #*
 #  Tell PF_RING if the application needs to send and/or receive packets to/from the socket.
 #  @param ring The PF_RING handle to enable.
@@ -749,7 +739,7 @@ proc pfring_set_direction*(ring: ptr pfring; direction: packet_direction): cint 
 #
 
 proc pfring_set_socket_mode*(ring: ptr pfring; mode: socket_mode): cint {.cdecl,
-    importc: "pfring_set_socket_mode", dynlib: libpfring.}
+    importc: "pfring_set_socket_mode".}
 #*
 #  This call allows a ring to be added to a cluster that can spawn across address spaces.
 #  On a nuthsell when two or more sockets are clustered they share incoming packets that are balanced on a per-flow manner.
@@ -764,7 +754,7 @@ proc pfring_set_socket_mode*(ring: ptr pfring; mode: socket_mode): cint {.cdecl,
 
 proc pfring_set_cluster*(ring: ptr pfring; clusterId: u_int;
                          the_type: cluster_type): cint {.cdecl,
-    importc: "pfring_set_cluster", dynlib: libpfring.}
+    importc: "pfring_set_cluster".}
 #*
 #  This call allows a ring to be removed from a previous joined cluster.
 #  @param ring      The PF_RING handle to be cluster.
@@ -773,7 +763,7 @@ proc pfring_set_cluster*(ring: ptr pfring; clusterId: u_int;
 #
 
 proc pfring_remove_from_cluster*(ring: ptr pfring): cint {.cdecl,
-    importc: "pfring_remove_from_cluster", dynlib: libpfring.}
+    importc: "pfring_remove_from_cluster".}
 #*
 #  Set the master ring using the id (vanilla PF_RING only)
 #  @param ring   The PF_RING handle.
@@ -782,7 +772,7 @@ proc pfring_remove_from_cluster*(ring: ptr pfring): cint {.cdecl,
 #
 
 proc pfring_set_master_id*(ring: ptr pfring; master_id: uint32): cint {.
-    cdecl, importc: "pfring_set_master_id", dynlib: libpfring.}
+    cdecl, importc: "pfring_set_master_id".}
 #*
 #  Set the master ring using the PF_RING handle (vanilla PF_RING only).
 #  @param ring   The PF_RING handle.
@@ -791,7 +781,7 @@ proc pfring_set_master_id*(ring: ptr pfring; master_id: uint32): cint {.
 #
 
 proc pfring_set_master*(ring: ptr pfring; master: ptr pfring): cint {.cdecl,
-    importc: "pfring_set_master", dynlib: libpfring.}
+    importc: "pfring_set_master".}
 #*
 #  Return the ring id.
 #  @param ring The PF_RING handle.
@@ -799,7 +789,7 @@ proc pfring_set_master*(ring: ptr pfring; master: ptr pfring): cint {.cdecl,
 #
 
 proc pfring_get_ring_id*(ring: ptr pfring): uint16 {.cdecl,
-    importc: "pfring_get_ring_id", dynlib: libpfring.}
+    importc: "pfring_get_ring_id".}
 #*
 #  Return an estimation of the enqueued packets.
 #  @param ring The PF_RING handle.
@@ -808,7 +798,7 @@ proc pfring_get_ring_id*(ring: ptr pfring): uint16 {.cdecl,
 #
 
 proc pfring_get_num_queued_pkts*(ring: ptr pfring): uint32 {.cdecl,
-    importc: "pfring_get_num_queued_pkts", dynlib: libpfring.}
+    importc: "pfring_get_num_queued_pkts".}
 #*
 #  Return the identifier of the kernel plugin responsible for consuming packets.
 #  @param ring The PF_RING handle.
@@ -816,7 +806,7 @@ proc pfring_get_num_queued_pkts*(ring: ptr pfring): uint32 {.cdecl,
 #
 
 proc pfring_get_packet_consumer_mode*(ring: ptr pfring): uint8 {.cdecl,
-    importc: "pfring_get_packet_consumer_mode", dynlib: libpfring.}
+    importc: "pfring_get_packet_consumer_mode".}
 #*
 #  Initialize the kernel plugin for packet processing.
 #  @param ring The PF_RING handle.
@@ -829,7 +819,7 @@ proc pfring_get_packet_consumer_mode*(ring: ptr pfring): uint8 {.cdecl,
 proc pfring_set_packet_consumer_mode*(ring: ptr pfring; plugin_id: uint8;
                                       plugin_data: cstring;
                                       plugin_data_len: u_int): cint {.cdecl,
-    importc: "pfring_set_packet_consumer_mode", dynlib: libpfring.}
+    importc: "pfring_set_packet_consumer_mode".}
 #*
 #  Add or remove a hash filtering rule.
 #  All rule parameters should be defined in the filtering rule (no wildcards).
@@ -843,7 +833,7 @@ proc pfring_set_packet_consumer_mode*(ring: ptr pfring; plugin_id: uint8;
 proc pfring_handle_hash_filtering_rule*(ring: ptr pfring;
                                         rule_to_add: ptr hash_filtering_rule;
                                         add_rule: cstring): cint {.cdecl,
-    importc: "pfring_handle_hash_filtering_rule", dynlib: libpfring.}
+    importc: "pfring_handle_hash_filtering_rule".}
 #*
 #  Add a wildcard filtering rule to an existing ring. Each rule will have a unique rule Id across the ring (i.e. two rings can have rules with the same id).
 #
@@ -871,7 +861,7 @@ proc pfring_handle_hash_filtering_rule*(ring: ptr pfring;
 
 proc pfring_add_filtering_rule*(ring: ptr pfring;
                                 rule_to_add: ptr filtering_rule): cint {.cdecl,
-    importc: "pfring_add_filtering_rule", dynlib: libpfring.}
+    importc: "pfring_add_filtering_rule".}
 #*
 #  Remove a previously added filtering rule.
 #  @param ring    The PF_RING handle on which the rule will be removed.
@@ -880,7 +870,7 @@ proc pfring_add_filtering_rule*(ring: ptr pfring;
 #
 
 proc pfring_remove_filtering_rule*(ring: ptr pfring; rule_id: uint16): cint {.
-    cdecl, importc: "pfring_remove_filtering_rule", dynlib: libpfring.}
+    cdecl, importc: "pfring_remove_filtering_rule".}
 #*
 #  Remove hash filtering rules inactive for the specified number of seconds.
 #  @param ring           The PF_RING handle on which the rules will be removed.
@@ -889,7 +879,7 @@ proc pfring_remove_filtering_rule*(ring: ptr pfring; rule_id: uint16): cint {.
 #
 
 proc pfring_purge_idle_hash_rules*(ring: ptr pfring; inactivity_sec: uint16): cint {.
-    cdecl, importc: "pfring_purge_idle_hash_rules", dynlib: libpfring.}
+    cdecl, importc: "pfring_purge_idle_hash_rules".}
 #*
 #  Remove filtering rules inactive for the specified number of seconds.
 #  @param ring           The PF_RING handle on which the rules will be removed.
@@ -898,7 +888,7 @@ proc pfring_purge_idle_hash_rules*(ring: ptr pfring; inactivity_sec: uint16): ci
 #
 
 proc pfring_purge_idle_rules*(ring: ptr pfring; inactivity_sec: uint16): cint {.
-    cdecl, importc: "pfring_purge_idle_rules", dynlib: libpfring.}
+    cdecl, importc: "pfring_purge_idle_rules".}
 #*
 #  Read statistics of a hash filtering rule.
 #  @param ring      The PF_RING handle on which the rule will be added/removed.
@@ -912,7 +902,7 @@ proc pfring_purge_idle_rules*(ring: ptr pfring; inactivity_sec: uint16): cint {.
 
 proc pfring_get_hash_filtering_rule_stats*(ring: ptr pfring;
     rule: ptr hash_filtering_rule; stats: cstring; stats_len: ptr u_int): cint {.
-    cdecl, importc: "pfring_get_hash_filtering_rule_stats", dynlib: libpfring.}
+    cdecl, importc: "pfring_get_hash_filtering_rule_stats".}
 #*
 #  Read statistics of a hash filtering rule.
 #  @param ring      The PF_RING handle from which stats will be read.
@@ -926,7 +916,7 @@ proc pfring_get_hash_filtering_rule_stats*(ring: ptr pfring;
 
 proc pfring_get_filtering_rule_stats*(ring: ptr pfring; rule_id: uint16;
                                       stats: cstring; stats_len: ptr u_int): cint {.
-    cdecl, importc: "pfring_get_filtering_rule_stats", dynlib: libpfring.}
+    cdecl, importc: "pfring_get_filtering_rule_stats".}
 #*
 #  Set the default filtering policy. This means that if no rule is matching the incoming packet the default policy will decide
 #  if the packet is forwarded to user space or dropped. Note that filtering rules are limited to a ring, so each ring can have
@@ -938,7 +928,7 @@ proc pfring_get_filtering_rule_stats*(ring: ptr pfring; rule_id: uint16;
 
 proc pfring_toggle_filtering_policy*(ring: ptr pfring;
                                      rules_default_accept_policy: uint8): cint {.
-    cdecl, importc: "pfring_toggle_filtering_policy", dynlib: libpfring.}
+    cdecl, importc: "pfring_toggle_filtering_policy".}
 #*
 #  Tells PF_RING to rehash incoming packets using a bi-directional hash function.
 #  This is also available with the PF_RING-aware libpcap via the PCAP_PF_RING_RSS_REHASH environment variable.
@@ -947,7 +937,7 @@ proc pfring_toggle_filtering_policy*(ring: ptr pfring;
 #
 
 proc pfring_enable_rss_rehash*(ring: ptr pfring): cint {.cdecl,
-    importc: "pfring_enable_rss_rehash", dynlib: libpfring.}
+    importc: "pfring_enable_rss_rehash".}
 #*
 #  Performs passive wait on a PF_RING socket, similar to the standard poll(), taking care of data structures synchronization.
 #  @param ring          The PF_RING socket to poll.
@@ -956,7 +946,7 @@ proc pfring_enable_rss_rehash*(ring: ptr pfring): cint {.cdecl,
 #
 
 proc pfring_poll*(ring: ptr pfring; wait_duration: u_int): cint {.cdecl,
-    importc: "pfring_poll", dynlib: libpfring.}
+    importc: "pfring_poll".}
 #*
 #  Check if a packet is available.
 #  @param ring The PF_RING handle.
@@ -964,7 +954,7 @@ proc pfring_poll*(ring: ptr pfring; wait_duration: u_int): cint {.cdecl,
 #
 
 proc pfring_is_pkt_available*(ring: ptr pfring): cint {.cdecl,
-    importc: "pfring_is_pkt_available", dynlib: libpfring.}
+    importc: "pfring_is_pkt_available".}
 #*
 #  This call returns the arrival time of the next incoming packet, when available.
 #  @param ring The PF_RING handle where we perform the check.
@@ -973,7 +963,7 @@ proc pfring_is_pkt_available*(ring: ptr pfring): cint {.cdecl,
 #
 
 proc pfring_next_pkt_time*(ring: ptr pfring; ts: ptr Timespec): cint {.cdecl,
-    importc: "pfring_next_pkt_time", dynlib: libpfring.}
+    importc: "pfring_next_pkt_time".}
 #*
 #  This call returns the raw timestamp of the next incoming packet, when available. This is available with adapters supporting rx hardware timestamping only.
 #  @param ring         The PF_RING handle where we perform the check.
@@ -983,7 +973,7 @@ proc pfring_next_pkt_time*(ring: ptr pfring; ts: ptr Timespec): cint {.cdecl,
 
 proc pfring_next_pkt_raw_timestamp*(ring: ptr pfring;
                                     timestamp_ns: ptr uint64): cint {.cdecl,
-    importc: "pfring_next_pkt_raw_timestamp", dynlib: libpfring.}
+    importc: "pfring_next_pkt_raw_timestamp".}
 #*
 #  Read the ring version. Note that if the ring version is 5.6 the retuned ring version is 0x050600.
 #  @param ring    The PF_RING handle to enable.
@@ -992,7 +982,7 @@ proc pfring_next_pkt_raw_timestamp*(ring: ptr pfring;
 #
 
 proc pfring_version*(ring: ptr pfring; version: ptr uint32): cint {.cdecl,
-    importc: "pfring_version", dynlib: libpfring.}
+    importc: "pfring_version".}
 #*
 #  Set a reflector device to send all incoming packets. This open a new socket and packets are automatically sent using pfring_send().
 #  @param ring        The PF_RING handle.
@@ -1001,7 +991,7 @@ proc pfring_version*(ring: ptr pfring; version: ptr uint32): cint {.cdecl,
 #
 
 proc pfring_set_reflector_device*(ring: ptr pfring; device_name: cstring): cint {.
-    cdecl, importc: "pfring_set_reflector_device", dynlib: libpfring.}
+    cdecl, importc: "pfring_set_reflector_device".}
 #*
 #  Returns the MAC address of the device bound to the socket.
 #  @param ring        The PF_RING handle to query.
@@ -1011,7 +1001,7 @@ proc pfring_set_reflector_device*(ring: ptr pfring; device_name: cstring): cint 
 
 proc pfring_get_bound_device_address*(ring: ptr pfring;
                                       mac_address: array[6, cstring]): cint {.
-    cdecl, importc: "pfring_get_bound_device_address", dynlib: libpfring.}
+    cdecl, importc: "pfring_get_bound_device_address".}
 #*
 #  Return the size of the PF_RING packet header (vanilla PF_RING only).
 #  @param ring The PF_RING handle.
@@ -1019,7 +1009,7 @@ proc pfring_get_bound_device_address*(ring: ptr pfring;
 #
 
 proc pfring_get_slot_header_len*(ring: ptr pfring): uint16 {.cdecl,
-    importc: "pfring_get_slot_header_len", dynlib: libpfring.}
+    importc: "pfring_get_slot_header_len".}
 #*
 #  Returns the interface index of the device bound to the socket.
 #  @param ring     The PF_RING handle to query.
@@ -1028,7 +1018,7 @@ proc pfring_get_slot_header_len*(ring: ptr pfring): uint16 {.cdecl,
 #
 
 proc pfring_get_bound_device_ifindex*(ring: ptr pfring; if_index: ptr cint): cint {.
-    cdecl, importc: "pfring_get_bound_device_ifindex", dynlib: libpfring.}
+    cdecl, importc: "pfring_get_bound_device_ifindex".}
 #*
 #  Return the interface index of the provided device.
 #  @param ring        The PF_RING handle.
@@ -1039,7 +1029,7 @@ proc pfring_get_bound_device_ifindex*(ring: ptr pfring; if_index: ptr cint): cin
 
 proc pfring_get_device_ifindex*(ring: ptr pfring; device_name: cstring;
                                 if_index: ptr cint): cint {.cdecl,
-    importc: "pfring_get_device_ifindex", dynlib: libpfring.}
+    importc: "pfring_get_device_ifindex".}
 #*
 #  Set a filtering device.
 #  @param ring The PF_RING handle.
@@ -1049,7 +1039,7 @@ proc pfring_get_device_ifindex*(ring: ptr pfring; device_name: cstring;
 
 proc pfring_set_virtual_device*(ring: ptr pfring;
                                 info: ptr virtual_filtering_device_info): cint {.
-    cdecl, importc: "pfring_set_virtual_device", dynlib: libpfring.}
+    cdecl, importc: "pfring_set_virtual_device".}
 #*
 #  This call processes packets until pfring_breakloop() is called or an error occurs.
 #  @param ring            The PF_RING handle.
@@ -1062,7 +1052,7 @@ proc pfring_set_virtual_device*(ring: ptr pfring;
 
 proc pfring_loopback_test*(ring: ptr pfring; buffer: cstring; buffer_len: u_int;
                            test_len: u_int): cint {.cdecl,
-    importc: "pfring_loopback_test", dynlib: libpfring.}
+    importc: "pfring_loopback_test".}
 #*
 #  When a ring is created, it is not enabled (i.e. incoming packets are dropped) until the above function is called.
 #  @param ring The PF_RING handle to enable.
@@ -1070,7 +1060,7 @@ proc pfring_loopback_test*(ring: ptr pfring; buffer: cstring; buffer_len: u_int;
 #
 
 proc pfring_enable_ring*(ring: ptr pfring): cint {.cdecl,
-    importc: "pfring_enable_ring", dynlib: libpfring.}
+    importc: "pfring_enable_ring".}
 #*
 #  Disable a ring.
 #  @param ring The PF_RING handle to disable.
@@ -1078,7 +1068,7 @@ proc pfring_enable_ring*(ring: ptr pfring): cint {.cdecl,
 #
 
 proc pfring_disable_ring*(ring: ptr pfring): cint {.cdecl,
-    importc: "pfring_disable_ring", dynlib: libpfring.}
+    importc: "pfring_disable_ring".}
 #*
 #  In order to set BPF filters through the PF_RING API it’s necessary to enable (this is the default) BPF support
 #  at compile time and link PF_RING-enabled applications against the -lpcap library (it is possible to disable the
@@ -1089,7 +1079,7 @@ proc pfring_disable_ring*(ring: ptr pfring): cint {.cdecl,
 #
 
 proc pfring_set_bpf_filter*(ring: ptr pfring; filter_buffer: cstring): cint {.
-    cdecl, importc: "pfring_set_bpf_filter", dynlib: libpfring.}
+    cdecl, importc: "pfring_set_bpf_filter".}
 #*
 #  Remove the BPF filter.
 #  @param ring The PF_RING handle.
@@ -1097,7 +1087,7 @@ proc pfring_set_bpf_filter*(ring: ptr pfring; filter_buffer: cstring): cint {.
 #
 
 proc pfring_remove_bpf_filter*(ring: ptr pfring): cint {.cdecl,
-    importc: "pfring_remove_bpf_filter", dynlib: libpfring.}
+    importc: "pfring_remove_bpf_filter".}
 #*
 #  Sets the filtering mode (software only, hardware only, both software and hardware) in order to implicitly
 #  add/remove hardware rules by means of the same API functionality used for software (wildcard and hash) rules.
@@ -1107,7 +1097,7 @@ proc pfring_remove_bpf_filter*(ring: ptr pfring): cint {.cdecl,
 #
 
 proc pfring_set_filtering_mode*(ring: ptr pfring; mode: filtering_mode): cint {.
-    cdecl, importc: "pfring_set_filtering_mode", dynlib: libpfring.}
+    cdecl, importc: "pfring_set_filtering_mode".}
 #*
 #  Reads the time from the device hardware clock, when the adapter supports hardware timestamping.
 #  @param ring The PF_RING handle.
@@ -1116,7 +1106,7 @@ proc pfring_set_filtering_mode*(ring: ptr pfring; mode: filtering_mode): cint {.
 #
 
 proc pfring_get_device_clock*(ring: ptr pfring; ts: ptr Timespec): cint {.cdecl,
-    importc: "pfring_get_device_clock", dynlib: libpfring.}
+    importc: "pfring_get_device_clock".}
 #*
 #  Sets the time in the device hardware clock, when the adapter supports hardware timestamping.
 #  @param ring The PF_RING handle.
@@ -1125,7 +1115,7 @@ proc pfring_get_device_clock*(ring: ptr pfring; ts: ptr Timespec): cint {.cdecl,
 #
 
 proc pfring_set_device_clock*(ring: ptr pfring; ts: ptr Timespec): cint {.cdecl,
-    importc: "pfring_set_device_clock", dynlib: libpfring.}
+    importc: "pfring_set_device_clock".}
 #*
 #  Adjust the time in the device hardware clock with an offset, when the adapter supports hardware timestamping.
 #  @param ring   The PF_RING handle.
@@ -1136,14 +1126,14 @@ proc pfring_set_device_clock*(ring: ptr pfring; ts: ptr Timespec): cint {.cdecl,
 
 proc pfring_adjust_device_clock*(ring: ptr pfring; offset: ptr Timespec;
                                  sign: int8): cint {.cdecl,
-    importc: "pfring_adjust_device_clock", dynlib: libpfring.}
+    importc: "pfring_adjust_device_clock".}
 #*
 #  Synchronizes the ingress ring indexes/registers with the kernel.
 #  @param ring The PF_RING handle.
 #
 
 proc pfring_sync_indexes_with_kernel*(ring: ptr pfring) {.cdecl,
-    importc: "pfring_sync_indexes_with_kernel", dynlib: libpfring.}
+    importc: "pfring_sync_indexes_with_kernel".}
 #*
 #  Send the last received packet to the specified device. This is an optimization working with standard PF_RING only.
 #  @param ring            The PF_RING handle on which the packet has been received.
@@ -1152,7 +1142,7 @@ proc pfring_sync_indexes_with_kernel*(ring: ptr pfring) {.cdecl,
 #
 
 proc pfring_send_last_rx_packet*(ring: ptr pfring; tx_interface_id: cint): cint {.
-    cdecl, importc: "pfring_send_last_rx_packet", dynlib: libpfring.}
+    cdecl, importc: "pfring_send_last_rx_packet".}
 #*
 #  Return the link status.
 #  @param ring The PF_RING handle.
@@ -1160,7 +1150,7 @@ proc pfring_send_last_rx_packet*(ring: ptr pfring; tx_interface_id: cint): cint 
 #
 
 proc pfring_get_link_status*(ring: ptr pfring): cint {.cdecl,
-    importc: "pfring_get_link_status", dynlib: libpfring.}
+    importc: "pfring_get_link_status".}
 #*
 #  Return the number of slots in the egress ring.
 #  @param ring The PF_RING handle.
@@ -1168,7 +1158,7 @@ proc pfring_get_link_status*(ring: ptr pfring): cint {.cdecl,
 #
 
 proc pfring_get_num_tx_slots*(ring: ptr pfring): u_int {.cdecl,
-    importc: "pfring_get_num_tx_slots", dynlib: libpfring.}
+    importc: "pfring_get_num_tx_slots".}
 #*
 #  Return the number of slots in the ingress ring.
 #  @param ring The PF_RING handle.
@@ -1176,7 +1166,7 @@ proc pfring_get_num_tx_slots*(ring: ptr pfring): u_int {.cdecl,
 #
 
 proc pfring_get_num_rx_slots*(ring: ptr pfring): u_int {.cdecl,
-    importc: "pfring_get_num_rx_slots", dynlib: libpfring.}
+    importc: "pfring_get_num_rx_slots".}
 #*
 #  Copies a packet into the specified slot of the egress ring.
 #  @param ring       The PF_RING handle.
@@ -1188,7 +1178,7 @@ proc pfring_get_num_rx_slots*(ring: ptr pfring): u_int {.cdecl,
 
 proc pfring_copy_tx_packet_into_slot*(ring: ptr pfring; tx_slot_id: uint16;
                                       buffer: cstring; len: u_int): cint {.
-    cdecl, importc: "pfring_copy_tx_packet_into_slot", dynlib: libpfring.}
+    cdecl, importc: "pfring_copy_tx_packet_into_slot".}
 #*
 #  Return the pointer to the buffer pointed by the packet buffer handle.
 #  @param ring       The PF_RING handle.
@@ -1197,7 +1187,7 @@ proc pfring_copy_tx_packet_into_slot*(ring: ptr pfring; tx_slot_id: uint16;
 #
 
 proc pfring_get_pkt_buff_data*(ring: ptr pfring; pkt_handle: ptr pfring_pkt_buff): ptr cstring {.
-    cdecl, importc: "pfring_get_pkt_buff_data", dynlib: libpfring.}
+    cdecl, importc: "pfring_get_pkt_buff_data".}
 #*
 #  Set the length of the packet. This function call is not necessary unless you want to custom set the packet length, instead of using the size from the received packet.
 #  @param ring       The PF_RING handle.
@@ -1208,7 +1198,7 @@ proc pfring_get_pkt_buff_data*(ring: ptr pfring; pkt_handle: ptr pfring_pkt_buff
 
 proc pfring_set_pkt_buff_len*(ring: ptr pfring; pkt_handle: ptr pfring_pkt_buff;
                               len: uint32): cint {.cdecl,
-    importc: "pfring_set_pkt_buff_len", dynlib: libpfring.}
+    importc: "pfring_set_pkt_buff_len".}
 #*
 #  Bind the buffer handle (handling a packet) to an interface id. This function call is useful to specify the egress interface index.
 #  @param ring       The PF_RING handle.
@@ -1220,7 +1210,7 @@ proc pfring_set_pkt_buff_len*(ring: ptr pfring; pkt_handle: ptr pfring_pkt_buff;
 proc pfring_set_pkt_buff_ifindex*(ring: ptr pfring;
                                   pkt_handle: ptr pfring_pkt_buff;
                                   if_index: cint): cint {.cdecl,
-    importc: "pfring_set_pkt_buff_ifindex", dynlib: libpfring.}
+    importc: "pfring_set_pkt_buff_ifindex".}
 #*
 #  Add an interface index to the interface indexes bound to the buffer handle. This is used to specify the egress interfaces (fan-out) of a packet buffer.
 #  @param ring The PF_RING handle.
@@ -1232,7 +1222,7 @@ proc pfring_set_pkt_buff_ifindex*(ring: ptr pfring;
 proc pfring_add_pkt_buff_ifindex*(ring: ptr pfring;
                                   pkt_handle: ptr pfring_pkt_buff;
                                   if_index: cint): cint {.cdecl,
-    importc: "pfring_add_pkt_buff_ifindex", dynlib: libpfring.}
+    importc: "pfring_add_pkt_buff_ifindex".}
 #*
 #  Allocate a packet buffer handle.
 #  The memory is allocated by PF_RING into the kernel and it is managed by PF_RING (i.e. no free() on this memory) using the pfring_XXX_XXX calls.
@@ -1241,7 +1231,7 @@ proc pfring_add_pkt_buff_ifindex*(ring: ptr pfring;
 #
 
 proc pfring_alloc_pkt_buff*(ring: ptr pfring): ptr pfring_pkt_buff {.cdecl,
-    importc: "pfring_alloc_pkt_buff", dynlib: libpfring.}
+    importc: "pfring_alloc_pkt_buff".}
 #*
 #  Release a packet buffer handle previously allocated by pfring_alloc_pkt_buff.
 #  @param ring       The PF_RING handle.
@@ -1249,7 +1239,7 @@ proc pfring_alloc_pkt_buff*(ring: ptr pfring): ptr pfring_pkt_buff {.cdecl,
 #
 
 proc pfring_release_pkt_buff*(ring: ptr pfring; pkt_handle: ptr pfring_pkt_buff) {.
-    cdecl, importc: "pfring_release_pkt_buff", dynlib: libpfring.}
+    cdecl, importc: "pfring_release_pkt_buff".}
 #*
 #  Same as pfring_recv(), this function receive a packet filling the buffer pointed by the provided packet handle instead of returning a new buffer.
 #  In a nutshell, the returned packet is put on the passed function argument.
@@ -1263,7 +1253,7 @@ proc pfring_release_pkt_buff*(ring: ptr pfring; pkt_handle: ptr pfring_pkt_buff)
 proc pfring_recv_pkt_buff*(ring: ptr pfring; pkt_handle: ptr pfring_pkt_buff;
                            hdr: ptr pfring_pkthdr;
                            wait_for_incoming_packet: uint8): cint {.cdecl,
-    importc: "pfring_recv_pkt_buff", dynlib: libpfring.}
+    importc: "pfring_recv_pkt_buff".}
 #*
 #  Same as pfring_send(), this function send the packet pointed by the provided packet buffer handle.
 #  Note: this function resets the content of the buffer handle so if you need to keep its content, make sure you copy the data before you call it.
@@ -1275,7 +1265,7 @@ proc pfring_recv_pkt_buff*(ring: ptr pfring; pkt_handle: ptr pfring_pkt_buff;
 
 proc pfring_send_pkt_buff*(ring: ptr pfring; pkt_handle: ptr pfring_pkt_buff;
                            flush_packet: uint8): cint {.cdecl,
-    importc: "pfring_send_pkt_buff", dynlib: libpfring.}
+    importc: "pfring_send_pkt_buff".}
 #*
 #  Synchronizes the egress ring indexes/registers flushing enqueued packets.
 #  @param ring The PF_RING handle.
@@ -1284,7 +1274,7 @@ proc pfring_send_pkt_buff*(ring: ptr pfring; pkt_handle: ptr pfring_pkt_buff;
 #
 
 proc pfring_flush_tx_packets*(ring: ptr pfring): cint {.cdecl,
-    importc: "pfring_flush_tx_packets", dynlib: libpfring.}
+    importc: "pfring_flush_tx_packets".}
 #*
 #  Add a string to search in the packet payload (used for filtering).
 #  @param ring             The PF_RING handle.
@@ -1293,7 +1283,7 @@ proc pfring_flush_tx_packets*(ring: ptr pfring): cint {.cdecl,
 #
 
 proc pfring_search_payload*(ring: ptr pfring; string_to_search: cstring): cint {.
-    cdecl, importc: "pfring_search_payload", dynlib: libpfring.}
+    cdecl, importc: "pfring_search_payload".}
 #*
 #  Attach a DNA socket to a DNA Cluster slave socket, allowing an application receiving packets from a cluster to send them in zero-copy to a DNA interface/queue.
 #  @param ring The PF_RING DNA Cluster slave handle.
@@ -1302,7 +1292,7 @@ proc pfring_search_payload*(ring: ptr pfring; string_to_search: cstring): cint {
 #
 
 proc pfring_register_zerocopy_tx_ring*(ring: ptr pfring; tx_ring: ptr pfring): cint {.
-    cdecl, importc: "pfring_register_zerocopy_tx_ring", dynlib: libpfring.}
+    cdecl, importc: "pfring_register_zerocopy_tx_ring".}
 # PF_RING Socket bundle
 #*
 #  Initialize a bundle socket.
@@ -1311,7 +1301,7 @@ proc pfring_register_zerocopy_tx_ring*(ring: ptr pfring; tx_ring: ptr pfring): c
 #
 
 proc pfring_bundle_init*(bundle: ptr pfring_bundle; p: bundle_read_policy) {.
-    cdecl, importc: "pfring_bundle_init", dynlib: libpfring.}
+    cdecl, importc: "pfring_bundle_init".}
 #*
 #  Add a ring to a bundle socket.
 #  @param bundle The PF_RING bundle handle.
@@ -1320,7 +1310,7 @@ proc pfring_bundle_init*(bundle: ptr pfring_bundle; p: bundle_read_policy) {.
 #
 
 proc pfring_bundle_add*(bundle: ptr pfring_bundle; ring: ptr pfring): cint {.
-    cdecl, importc: "pfring_bundle_add", dynlib: libpfring.}
+    cdecl, importc: "pfring_bundle_add".}
 #*
 #  Poll on a bundle socket.
 #  @param bundle        The PF_RING bundle handle.
@@ -1329,7 +1319,7 @@ proc pfring_bundle_add*(bundle: ptr pfring_bundle; ring: ptr pfring): cint {.
 #
 
 proc pfring_bundle_poll*(bundle: ptr pfring_bundle; wait_duration: u_int): cint {.
-    cdecl, importc: "pfring_bundle_poll", dynlib: libpfring.}
+    cdecl, importc: "pfring_bundle_poll".}
 #*
 #  Same as pfring_recv() on a bundle socket.
 #  @param bundle     The PF_RING bundle handle.
@@ -1340,24 +1330,24 @@ proc pfring_bundle_poll*(bundle: ptr pfring_bundle; wait_duration: u_int): cint 
 #  @return 0 in case of no packet being received (non-blocking), 1 in case of success, -1 in case of error.
 #
 
-proc pfring_bundle_read*(bundle: ptr pfring_bundle; buffer: ptr ptr cstring;
+proc pfring_bundle_read*(bundle: ptr pfring_bundle; buffer: ptr cstring;
                          buffer_len: u_int; hdr: ptr pfring_pkthdr;
                          wait_for_incoming_packet: uint8): cint {.cdecl,
-    importc: "pfring_bundle_read", dynlib: libpfring.}
+    importc: "pfring_bundle_read".}
 #*
 #  Destroy a bundle socket.
 #  @param bundle The PF_RING bundle handle.
 #
 
 proc pfring_bundle_destroy*(bundle: ptr pfring_bundle) {.cdecl,
-    importc: "pfring_bundle_destroy", dynlib: libpfring.}
+    importc: "pfring_bundle_destroy".}
 #*
 #  Close a bundle socket.
 #  @param bundle The PF_RING bundle handle.
 #
 
 proc pfring_bundle_close*(bundle: ptr pfring_bundle) {.cdecl,
-    importc: "pfring_bundle_close", dynlib: libpfring.}
+    importc: "pfring_bundle_close".}
 # Utils (defined in pfring_utils.c)
 #*
 #  Parse a packet.
@@ -1375,7 +1365,7 @@ proc pfring_parse_pkt*(pkt: ptr cstring; hdr: ptr pfring_pkthdr; level: uint8; #
                                                                                  # 2..4
                        add_timestamp: uint8; # 0,1
                        add_hash: uint8): cint {.cdecl,
-    importc: "pfring_parse_pkt", dynlib: libpfring.}
+    importc: "pfring_parse_pkt".}
   # 0,1
 #*
 #  Set the promiscuous mode flag to a device.
@@ -1385,7 +1375,7 @@ proc pfring_parse_pkt*(pkt: ptr cstring; hdr: ptr pfring_pkthdr; level: uint8; #
 #
 
 proc pfring_set_if_promisc*(device: cstring; set_promisc: cint): cint {.cdecl,
-    importc: "pfring_set_if_promisc", dynlib: libpfring.}
+    importc: "pfring_set_if_promisc".}
 #*
 #  Format a number.
 #  @param val          The value.
@@ -1397,7 +1387,7 @@ proc pfring_set_if_promisc*(device: cstring; set_promisc: cint): cint {.cdecl,
 
 proc pfring_format_numbers*(val: cdouble; buf: cstring; buf_len: u_int;
                             add_decimals: uint8): cstring {.cdecl,
-    importc: "pfring_format_numbers", dynlib: libpfring.}
+    importc: "pfring_format_numbers".}
 #*
 #  Enables rx and tx hardware timestamping, when the adapter supports it.
 #  @param ring        The PF_RING handle.
@@ -1409,7 +1399,7 @@ proc pfring_format_numbers*(val: cdouble; buf: cstring; buf_len: u_int;
 
 proc pfring_enable_hw_timestamp*(ring: ptr pfring; device_name: cstring;
                                  enable_rx: uint8; enable_tx: uint8): cint {.
-    cdecl, importc: "pfring_enable_hw_timestamp", dynlib: libpfring.}
+    cdecl, importc: "pfring_enable_hw_timestamp".}
 #*
 #  Return the size of the MTU.
 #  @param ring The PF_RING handle.
@@ -1417,7 +1407,7 @@ proc pfring_enable_hw_timestamp*(ring: ptr pfring; device_name: cstring;
 #
 
 proc pfring_get_mtu_size*(ring: ptr pfring): cint {.cdecl,
-    importc: "pfring_get_mtu_size", dynlib: libpfring.}
+    importc: "pfring_get_mtu_size".}
 #*
 #  Return NIC settings: max packet length, num rx/tx slots (DNA/ZC only).
 #  @param ring     The PF_RING handle.
@@ -1427,7 +1417,7 @@ proc pfring_get_mtu_size*(ring: ptr pfring): cint {.cdecl,
 
 proc pfring_get_card_settings*(ring: ptr pfring;
                                settings: ptr pfring_card_settings): cint {.
-    cdecl, importc: "pfring_get_card_settings", dynlib: libpfring.}
+    cdecl, importc: "pfring_get_card_settings".}
 #*
 #  Print a packet (the header with parsing info must be provided).
 #  @param buff     The destination buffer.
@@ -1439,7 +1429,7 @@ proc pfring_get_card_settings*(ring: ptr pfring;
 
 proc pfring_print_parsed_pkt*(buff: cstring; buff_len: u_int; p: ptr cstring;
                               h: ptr pfring_pkthdr): cint {.cdecl,
-    importc: "pfring_print_parsed_pkt", dynlib: libpfring.}
+    importc: "pfring_print_parsed_pkt".}
 #*
 #  Print a packet.
 #  @param buff     The destination buffer.
@@ -1451,7 +1441,7 @@ proc pfring_print_parsed_pkt*(buff: cstring; buff_len: u_int; p: ptr cstring;
 
 proc pfring_print_pkt*(buff: cstring; buff_len: u_int; p: ptr cstring;
                        len: u_int; caplen: u_int): cint {.cdecl,
-    importc: "pfring_print_pkt", dynlib: libpfring.}
+    importc: "pfring_print_pkt".}
 #*
 #  Receive a packet chunk, if enabled via pfring_open() flag.
 #  @param ring                      The PF_RING handle.
@@ -1464,7 +1454,7 @@ proc pfring_print_pkt*(buff: cstring; buff_len: u_int; p: ptr cstring;
 proc pfring_recv_chunk*(ring: ptr pfring; chunk: ptr pointer;
                         chunk_len: ptr uint32;
                         wait_for_incoming_chunk: uint8): cint {.cdecl,
-    importc: "pfring_recv_chunk", dynlib: libpfring.}
+    importc: "pfring_recv_chunk".}
 #*
 #  Set a custom device name to which the socket is bound. This function should be called for devices that are not visible via ifconfig
 #  @param ring            The PF_RING handle.
@@ -1473,7 +1463,7 @@ proc pfring_recv_chunk*(ring: ptr pfring; chunk: ptr pointer;
 #
 
 proc pfring_set_bound_dev_name*(ring: ptr pfring; custom_dev_name: cstring): cint {.
-    cdecl, importc: "pfring_set_bound_dev_name", dynlib: libpfring.}
+    cdecl, importc: "pfring_set_bound_dev_name".}
 #*
 #  Reads a IXIA-formatted timestamp from an incoming packet and puts it into the timestamp variable.
 #  @param buffer            Incoming packet buffer.
@@ -1484,7 +1474,7 @@ proc pfring_set_bound_dev_name*(ring: ptr pfring; custom_dev_name: cstring): cin
 
 proc pfring_read_ixia_hw_timestamp*(buffer: ptr cstring; buffer_len: uint32;
                                     ts: ptr Timespec): cint {.cdecl,
-    importc: "pfring_read_ixia_hw_timestamp", dynlib: libpfring.}
+    importc: "pfring_read_ixia_hw_timestamp".}
 #*
 #  Strip a IXIA-formatted timestamp from an incoming packet. If the timestamp is found, the
 #  hdr parameter (caplen and len fields) are decreased by the size of the timestamp.
@@ -1494,7 +1484,7 @@ proc pfring_read_ixia_hw_timestamp*(buffer: ptr cstring; buffer_len: uint32;
 #
 
 proc pfring_handle_ixia_hw_timestamp*(buffer: ptr cstring; hdr: ptr pfring_pkthdr) {.
-    cdecl, importc: "pfring_handle_ixia_hw_timestamp", dynlib: libpfring.}
+    cdecl, importc: "pfring_handle_ixia_hw_timestamp".}
 #*
 #  Reads a VSS/APCON-formatted timestamp from an incoming packet and puts it into the timestamp variable.
 #  @param buffer            Incoming packet buffer.
@@ -1505,7 +1495,7 @@ proc pfring_handle_ixia_hw_timestamp*(buffer: ptr cstring; hdr: ptr pfring_pkthd
 
 proc pfring_read_vss_apcon_hw_timestamp*(buffer: ptr cstring;
     buffer_len: uint32; ts: ptr Timespec): cint {.cdecl,
-    importc: "pfring_read_vss_apcon_hw_timestamp", dynlib: libpfring.}
+    importc: "pfring_read_vss_apcon_hw_timestamp".}
 #*
 #  Strip an VSS/APCON-formatted timestamp from an incoming packet. If the timestamp is found, the
 #  hdr parameter (caplen and len fields) are decreased by the size of the timestamp.
@@ -1522,6 +1512,6 @@ proc pfring_handle_vss_apcon_hw_timestamp*(buffer: ptr cstring;
 
 proc pfring_parse_bpf_filter*(filter_buffer: cstring; caplen: u_int;
                               filter: ptr pfring_bpf_program): cint {.cdecl,
-    importc: "pfring_parse_bpf_filter", dynlib: libpfring.}
+    importc: "pfring_parse_bpf_filter".}
 proc pfring_free_bpf_filter*(filter: ptr pfring_bpf_program) {.cdecl,
-    importc: "pfring_free_bpf_filter", dynlib: libpfring.}
+    importc: "pfring_free_bpf_filter".}
