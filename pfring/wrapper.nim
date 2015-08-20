@@ -28,11 +28,20 @@ const
   MAX_CAPLEN* = 65535
   libpfring = "libpfring.so"
 
+  TH_FIN* = 0x01
+  TH_SYN* = 0x02
+  TH_RST* = 0x04
+  TH_PUSH* = 0x08
+  TH_ACK* = 0x10
+  TH_URG* = 0x20
+  TH_ECNECHO* = 0x40
+  TH_CWR* =  0x80
+
 # *********************************
 {.pragma: st,
   pure,
   final,
-  header: "<linux/pf_ring.h>",
+#  header: "<linux/pf_ring.h>",
   importc: "struct $1"
 .}
 

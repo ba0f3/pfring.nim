@@ -1,12 +1,13 @@
 import sharedstrings
 
 import wrapper
+export wrapper
 
 type
   Ring* = ref object
     cptr*: ptr pfring
     caplen*: int
-    header*: pfring_pkthdr
+    header*: ptr pfring_pkthdr
     buffer*: ptr cstring
 
   Stats* = ref object
@@ -47,7 +48,6 @@ proc newRing*(device, appname: string, caplen, flags: uint32): Ring =
   if result.cptr.isNil:
     raise newException(SystemError, "Unable to open " & device & " for capturing")
   result.caplen = caplen.int
-  result.buffer = newString(caplen)
   result.setApplicationName(appname)
 
 proc newRing*(device: string, caplen, flags: uint32): Ring =
@@ -57,22 +57,22 @@ proc close*(r: Ring) =
   pfring_close(r.cptr)
 
 proc readPacketData*(r: Ring) =
-  let res = pfring_recv(r.cptr, addr r.buffer, r.buffer.len, r.header, 1)
+  let res = pfring_recv(r.cptr, addr r.buffer, r.buffer[].len.uint, r.header, 1)
   if res != 1 and res != 0:
     raise newException(SystemError, "Unable to read data, error code: " & $res)
 
 proc readPacketDataTo*(r: Ring, buffer: ptr string) =
   r.readPacketData()
-  buffer[] = $r.buffer[0..r.header.caplen.int]
+  buffer[] = ($r.buffer[])[0..r.header.caplen.int]
 
 proc readParsedPacketData*(r: Ring) =
-  let res = pfring_recv_parsed(r.cptr, addr r.buffer, r.buffer.len, r.header, 1, 4, 1, 1)
+  let res = pfring_recv_parsed(r.cptr, addr r.buffer, r.buffer[].len.uint, r.header, 1, 4, 1, 1)
   if res < 0:
     raise newException(SystemError, "Unable to read data, error code: " & $res)
 
 proc readParsedPacketDataTo*(r: Ring, buffer: ptr string) =
   r.readParsedPacketData()
-  buffer[] = $r.buffer[0..r.header.caplen.int]
+  buffer[] = ($r.buffer[])[0..r.header.caplen.int]
 
 proc writePacketData*(r: Ring, data: string) =
   let res = pfring_send(r.cptr, data.cstring, data.len.cuint, 1)
@@ -82,8 +82,8 @@ proc writePacketData*(r: Ring, data: string) =
 proc getStats*(r: Ring): Stats =
   new(result)
   var stat: pfring_stat
-  new(stat)
-  let res = pfring_stats(r.cptr, stat)
+
+  let res = pfring_stats(r.cptr, addr stat)
   if res != 0:
     raise newException(SystemError, "Unable to get ring stats, error code: " & $res)
 
@@ -92,7 +92,8 @@ proc getStats*(r: Ring): Stats =
 
 proc printParsedPacket*(r: Ring) =
   var buffer = newString(512)
-  discard pfring_print_parsed_pkt(buffer, buffer.len, $r.buffer, r.header)
+
+  discard pfring_print_parsed_pkt(buffer, buffer.len.uint, r.buffer, r.header)
   #discard pfring_parse_pkt(buffer, r.header, 4, 1, 1)
   echo buffer
 
@@ -148,3 +149,5 @@ proc setLooper*(r: Ring, looper: proc (h: ptr pfring_pkthdr, p: ptr cstring, use
 
 proc parsePacket*(p: ptr cstring, h: ptr pfring_pkthdr, level, timestamp, hash: uint8) =
   let res = pfring_parse_pkt(p, h, level, timestamp, hash)
+  if res < 0:
+    raise newException(SystemError, "Unable to parse packet, error code: " & $res)
