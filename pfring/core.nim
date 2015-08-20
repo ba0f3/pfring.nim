@@ -60,25 +60,23 @@ proc newRing*(device: string, caplen, flags: uint32): Ring =
 proc close*(r: Ring) =
   pfring_close(r.cptr)
 
-proc readPacketDataTo*(r: Ring, buffer: ptr string) =
+proc readPacketData*(r: Ring) =
   let res = pfring_recv(r.cptr, addr r.buffer, r.buffer.len, r.header, 1)
   if res != 1 and res != 0:
     raise newException(SystemError, "Unable to read data, error code: " & $res)
+
+proc readPacketDataTo*(r: Ring, buffer: ptr string) =
+  r.readPacketData(addr result)
   buffer[] = $r.buffer[0..r.header.caplen.int]
 
-proc readPacketData*(r: Ring): string =
-  result = ""
-  r.readPacketDataTo(addr result)
-
-proc readParsedPacketDataTo*(r: Ring, buffer: ptr string) =
+proc readParsedPacketData*(r: Ring) =
   let res = pfring_recv_parsed(r.cptr, addr r.buffer, r.buffer.len, r.header, 1, 4, 1, 1)
   if res < 0:
     raise newException(SystemError, "Unable to read data, error code: " & $res)
-  buffer[] = $r.buffer[0..r.header.caplen.int]
 
-proc readParsedPacketData*(r: Ring): string =
-  result = ""
-  r.readParsedPacketDataTo(addr result)
+proc readParsedPacketDataTo*(r: Ring, buffer: ptr string) =
+  r.readParsedPacketData()
+  buffer[] = $r.buffer[0..r.header.caplen.int]
 
 proc writePacketData*(r: Ring, data: string) =
   let res = pfring_send(r.cptr, data.cstring, data.len.cuint, 1)
