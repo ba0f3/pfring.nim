@@ -77,7 +77,7 @@ type
     ts*: Timeval
     caplen*: cuint
     length*: cuint
-    extended_pkthdr*: pfring_extended_pkthdr
+    extended_hdr*: pfring_extended_pkthdr
 
 
   pfring_stat* {.pf.} = ref object

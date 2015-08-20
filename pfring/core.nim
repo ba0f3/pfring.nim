@@ -148,3 +148,6 @@ proc setLooper*(r: Ring, looper: proc (h: ptr pfring_pkthdr, p: ptr cstring, use
   let res = pfring_loop(r.cptr, looper, user_bytes, wfp.uint8)
   if res < 0:
     raise newException(SystemError, "Unable to set looper callback, error code: " & $res)
+
+proc parsePacket*(p: cstring, h: pfring_pkthdr, level, timestamp, hash: uint8) =
+  let res = pfring_parse_pkt(p, h, level, timestamp, hash)

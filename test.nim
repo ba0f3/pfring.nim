@@ -20,7 +20,7 @@ var buf = newString(512)
 while true:
   ring.readParsedPacketDataTo(addr buf)
   #ring.printParsedPacket()
-  var flags = ring.header.extended_pkthdr.parsed_pkt.tcp.flags
+  var flags = ring.header.extended_hdr.parsed_pkt.tcp.flags
   var syn =  (flags and TH_SYN) != 0
   var ack =  (flags and TH_ACK) != 0
   if syn and not ack:
