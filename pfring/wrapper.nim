@@ -15,7 +15,7 @@ proc pfring_open_consumer*(device: cstring, caplen, flags: cuint, cpi: uint8, cd
 proc pfring_open_multichannel*(device: cstring, caplen, flags: cuint, rings: array[1..32, pfring]): uint8 {.pf.}
 proc pfring_shutdown*(ring: pfring) {.pf.}
 proc pfring_config*(cpuPercentage: cshort) {.pf.}
-proc pfring_loop*(ring: pfring, looper: pfringProcessPacket, userBytes: cstring, wfp: uint8): cint {.pf.}
+proc pfring_loop*(ring: pfring, looper: proc (h: ptr pfring_pkthdr, p: ptr cstring, user_bytes: ptr cstring), user_bytes: ptr cstring, wfp: uint8): cint {.pf.}
 proc pfring_breakloop*(ring: pfring) {.pf.}
 proc pfring_close*(ring: pfring) {.pf.}
 proc pfring_stats*(ring: pfring, stats: pfring_stat): cint {.pf.}

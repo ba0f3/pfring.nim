@@ -1,7 +1,9 @@
 import sharedstrings
 
-import types
 import wrapper
+
+import types
+export types
 
 type
   Ring* = ref object
@@ -37,7 +39,7 @@ const
   ClusterPerFlow5Tuple*: ClusterType = cluster_per_flow_5_tuple
   ClusterPerFlowTCP5Tuple*: ClusterType = cluster_per_flow_tcp_5_tuple
 
-proc setApplicationName*(r: Ring, name: string) =
+proc setApplicationName*(r: Ring, name: cstring) =
   let res = pfring_set_application_name(r.cptr, name)
   if res != 0:
     raise newException(SystemError, "Unable to set ring application name, error code: " & $res)
@@ -141,3 +143,8 @@ proc setSocketMode*(r: Ring, s: SocketMode) =
   let res = pfring_set_socket_mode(r.cptr, s)
   if res < 0:
     raise newException(SystemError, "Unable to set socket mode, error code: " & $res)
+
+proc setLooper*(r: Ring, looper: proc (h: ptr pfring_pkthdr, p: ptr cstring, user_bytes: ptr cstring), user_bytes: ptr cstring, wfp: bool) =
+  let res = pfring_loop(r.cptr, looper, user_bytes, wfp.uint8)
+  if res < 0:
+    raise newException(SystemError, "Unable to set looper callback, error code: " & $res)

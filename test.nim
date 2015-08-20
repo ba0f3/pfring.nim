@@ -1,6 +1,4 @@
-import pfring/types
 import pfring/core
-import pfring/wrapper
 
 var ring = newRing("eth1", 65536, PF_RING_PROMISC)
 if ring.isNil:

@@ -84,7 +84,6 @@ type
     recv*: uint64
     drop*: uint64
 
-  pfringProcessPacket* {.pf.} = ref object
   hw_filtering_rule* {.pf.} = ref object
 
   packet_direction* = enum
