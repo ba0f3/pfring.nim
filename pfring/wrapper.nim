@@ -99,7 +99,7 @@ proc pfring_bundle_poll*(bundle: pfring_bundle, wait_duration: cuint): cint {.pf
 proc pfring_bundle_read*(bundle: pfring_bundle, buffer: ptr[cstring], buffer_len: cuint, hdr: pfring_pkthdr, wait_for_incoming_packet: uint8): cint {.pf.}
 proc pfring_bundle_destroy*(bundle: pfring_bundle) {.pf.}
 proc pfring_bundle_close*(bundle: pfring_bundle) {.pf.}
-proc pfring_parse_pkt*(pkt: cstring, hdr: pfring_pkthdr, level, add_timestamp, add_hash: uint8): cint {.pf.}
+proc pfring_parse_pkt*(pkt: ptr cstring, hdr: ptr pfring_pkthdr, level, add_timestamp, add_hash: uint8): cint {.pf.}
 proc pfring_set_if_promisc*(device: cstring, set_promisc: cint): cint {.pf.}
 proc pfring_format_numbers*(val: cdouble, buf: cstring, buf_len: cuint, add_decimals: uint8): cstring {.pf.}
 proc pfring_enable_hw_timestamp*(ring: pfring, device_name: cstring, enable_rx, enable_tx: uint8): cint {.pf.}
