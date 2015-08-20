@@ -2,15 +2,12 @@ import sharedstrings
 
 import wrapper
 
-import types
-export types
-
 type
   Ring* = ref object
-    cptr*: pfring
+    cptr*: ptr pfring
     caplen*: int
     header*: pfring_pkthdr
-    buffer*: SharedString
+    buffer*: ptr cstring
 
   Stats* = ref object
     received*: uint64
@@ -50,7 +47,7 @@ proc newRing*(device, appname: string, caplen, flags: uint32): Ring =
   if result.cptr.isNil:
     raise newException(SystemError, "Unable to open " & device & " for capturing")
   result.caplen = caplen.int
-  result.buffer = newSharedString(caplen)
+  result.buffer = newString(caplen)
   result.setApplicationName(appname)
 
 proc newRing*(device: string, caplen, flags: uint32): Ring =
