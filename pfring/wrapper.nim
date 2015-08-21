@@ -42,9 +42,9 @@ type
     bounce_interface*: cint
     reserved*: sk_buff
 
-  ip_addr = object
-    v6*: In6Addr
-    v4*: uint32
+  ip_addr = object  {.union.}
+    v6*: In6Addr           # IPv6 src/dst IP addresses (Network byte order)
+    v4*: uint32            # IPv4 src/dst IP addresses
 
   pkt_parsing_info_tcp = object
     flags*: uint8
