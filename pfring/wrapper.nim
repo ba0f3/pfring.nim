@@ -66,8 +66,8 @@ type
     payload_offset*: int16
 
   pkt_parsing_info = object
-    dmac*: uint8
-    smac*: uint8
+    dmac*: array[6, uint8]
+    smac*: array[6, uint8]
     eth_type*: uint16
     vlan_id*: uint16
     ip_version*: uint8
