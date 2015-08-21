@@ -12,14 +12,16 @@ proc signalHandler() {.noconv.} =
 setControlCHook(signalHandler)
 
 
-ring.setBPFFilter("tcp and port 80")
+#ring.setBPFFilter("tcp and port 80")
 ring.enable()
-ring.setDirection(ReceiveOnly)
+#ring.setDirection(ReceiveOnly)
 #ring.setSocketMode(ReadOnly)
 var buf = newString(512)
 while true:
   ring.readParsedPacketDataTo(addr buf)
   #ring.printParsedPacket()
+  echo ring.header.extended_hdr.parsed_header_len
+  echo ring.header.extended_hdr.parsed_pkt.ip_src.v4
   var flags = ring.header.extended_hdr.parsed_pkt.tcp.flags
   var syn =  (flags and TH_SYN) != 0
   var ack =  (flags and TH_ACK) != 0

@@ -142,10 +142,13 @@ proc setSocketMode*(r: Ring, s: SocketMode) =
   if res < 0:
     raise newException(SystemError, "Unable to set socket mode, error code: " & $res)
 
-proc setLooper*(r: Ring, looper: proc (h: ptr pfring_pkthdr, p: ptr cstring, user_bytes: ptr cstring), user_bytes: ptr cstring, wfp: bool) =
+proc startLoop*(r: Ring, looper: proc (h: ptr pfring_pkthdr, p: ptr cstring, user_bytes: ptr cstring), user_bytes: ptr cstring, wfp: bool) =
   let res = pfring_loop(r.cptr, looper, user_bytes, wfp.uint8)
   if res < 0:
     raise newException(SystemError, "Unable to set looper callback, error code: " & $res)
+
+proc breakLoop(r: Ring) =
+  pfring_breakloop(r.cptr)
 
 proc parsePacket*(p: ptr cstring, h: ptr pfring_pkthdr, level, timestamp, hash: uint8) =
   let res = pfring_parse_pkt(p, h, level, timestamp, hash)

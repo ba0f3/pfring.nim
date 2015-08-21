@@ -11,6 +11,7 @@
 #
 
 {.passL: "-lpfring -lpcap -lnuma -lrt".}
+{.deadCodeElim:on.}
 
 import posix
 
@@ -66,8 +67,8 @@ type
     payload_offset*: int16
 
   pkt_parsing_info = object
-    dmac*: array[6, uint8]
-    smac*: array[6, uint8]
+    dmac*: array[0..5, char]
+    smac*: array[0..5, char]
     eth_type*: uint16
     vlan_id*: uint16
     ip_version*: uint8
