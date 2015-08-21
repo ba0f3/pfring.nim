@@ -29,20 +29,13 @@ const
   TH_CWR* =  0x80
 
 # *********************************
-{.pragma: st,
-  pure,
-  final,
-  header: "<linux/pf_ring.h>",
-  importc: "struct $1"
-.}
-
 type
-  sk_buff {.st.} = ref object
+  sk_buff = ref object
   pfring_extended_pkthdr_tx {.final, pure.} = object
     bounce_interface*: cint
     reserved*: sk_buff
 
-  ip_addr = object  {.union.}
+  ip_addr = object {.union.}
     v6*: In6Addr           # IPv6 src/dst IP addresses (Network byte order)
     v4*: uint32            # IPv4 src/dst IP addresses
 
@@ -51,7 +44,7 @@ type
     seq_num*: uint32
     ack_num*: uint32
 
-  tunnel_info= object
+  tunnel_info = object
     tunnel_id*: uint32
     tunneled_proto*: uint8
     tunneled_ip_src*: ip_addr
@@ -133,28 +126,27 @@ type
   filtering_mode* {.size: sizeof(cint).} = enum
     hardware_and_software = 0, hardware_only, software_only
 
-  pfring_pkt_buff* = object
-  hw_filtering_rule* = object
-  pfring_device_type* = object
-  FlowSlotInfo* = object
-  pthread_rwlock_t* = object
-  sockaddr_ll* = object
-  pollfd* = object
+  pfring_pkt_buff = object
+  hw_filtering_rule = object
+  pfring_device_type = object
+  FlowSlotInfo = object
+  pthread_rwlock_t = object
+  sockaddr_ll = object
+  pollfd = object
 
-
-  pfring_card_settings* = object
+  pfring_card_settings = object
     max_packet_size*: uint32
     rx_ring_slots*: uint32
     tx_ring_slots*: uint32
 
 
-  INNER_C_STRUCT_8320161996705125961* = object
+  INNER_C_STRUCT_8320161996705125961 = object
     force_timestamp*: uint8
     is_silicom_hw_timestamp_card*: uint8
     enable_hw_timestamp*: uint8
     last_hw_timestamp*: Timespec
 
-  INNER_C_STRUCT_2972418661010263783* = object
+  INNER_C_STRUCT_2972418661010263783 = object
     enabled_rx_packet_send*: uint8
     last_received_hdr*: ptr pfring_pkthdr #
                                           #       Header of the past packet
@@ -162,7 +154,7 @@ type
                                           #
   zc_dev_info = object
   zc_dev_operation = object
-  INNER_C_STRUCT_15956139561790962620* = object
+  INNER_C_STRUCT_15956139561790962620 = object
     num_rx_pkts_before_dna_sync*: uint16
     num_tx_pkts_before_dna_sync*: uint16
     dna_rx_sync_watermark*: uint16
@@ -184,7 +176,7 @@ type
     gorc_reg_ptr*: ptr uint32
     last_dna_operation*: zc_dev_operation
 
-  INNER_C_STRUCT_6977292814936016408* = object
+  INNER_C_STRUCT_6977292814936016408 = object
     device_id*: int8
     port_id*: int8
 
