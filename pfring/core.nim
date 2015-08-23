@@ -147,7 +147,7 @@ proc startLoop*(r: Ring, looper: proc (h: ptr pfring_pkthdr, p: ptr cstring, use
   if res < 0:
     raise newException(SystemError, "Unable to set looper callback, error code: " & $res)
 
-proc breakLoop(r: Ring) =
+proc breakLoop*(r: Ring) =
   pfring_breakloop(r.cptr)
 
 proc parsePacket*(p: ptr cstring, h: ptr pfring_pkthdr, level, timestamp, hash: uint8) =

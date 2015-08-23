@@ -19,7 +19,7 @@ ring.enable()
 var buf = newString(512)
 while true:
   ring.readParsedPacketDataTo(addr buf)
-  #ring.printParsedPacket()
+  ring.printParsedPacket()
   echo ring.header.extended_hdr.parsed_header_len
   echo ring.header.extended_hdr.parsed_pkt.ip_src.v4
   var flags = ring.header.extended_hdr.parsed_pkt.tcp.flags
