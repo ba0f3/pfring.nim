@@ -93,7 +93,7 @@ type
     length*: cuint
     extended_hdr*: pfring_extended_pkthdr
 
-  pfring_stat* = ref object
+  pfring_stat* = object
     recv*: uint64
     drop*: uint64
 

@@ -8,7 +8,7 @@ type
     header*: pfring_pkthdr
     buffer*: cstring
 
-  Stats* = ref object
+  Stats* = object
     received*: uint64
     dropped*: uint64
 
@@ -78,7 +78,6 @@ proc writePacketData*(r: Ring, data: string) =
     raise newException(SystemError, "Unable to send packet data, error code: " & $res)
 
 proc getStats*(r: Ring): Stats =
-  new(result)
   var stat: pfring_stat
 
   let res = pfring_stats(r.cptr, addr stat)
