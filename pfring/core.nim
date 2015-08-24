@@ -1,5 +1,3 @@
-import sharedstrings
-
 import wrapper
 export wrapper
 
