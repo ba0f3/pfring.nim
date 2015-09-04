@@ -80,7 +80,7 @@ type
     last_matched_rule_id*: uint16
     offset*: pkt_offset
 
-  pfring_extended_pkthdr = object
+  pfring_extended_pkthdr {.final, pure.} = object
     timestamp_ns*: uint64
     flags*: uint32
     rx_direction*: uint8
@@ -357,7 +357,7 @@ const
   MAX_NUM_BUNDLE_ELEMENTS* = 32
 
 type
-  pfringProcesssPacket* = proc (h: ptr pfring_pkthdr, p: ptr cstring, user_bytes: ptr cstring)
+  pfringProcesssPacket* = proc (h: ptr pfring_pkthdr, p: ptr cstring, user_bytes: ptr cstring) {.cdecl.}
 
   bundle_read_policy* {.size: sizeof(cint).} = enum
     pick_round_robin = 0, pick_fifo
@@ -461,7 +461,7 @@ proc pfring_config*(cpu_percentage: cushort) {.pfring.}
 #  @param wait_for_packet If 0 active wait is used to check the packet availability.
 #  @return 0 on success (pfring_breakloop()), a negative value otherwise.
 #
-proc pfring_loop*(ring: ptr pfring; looper: pfringProcesssPacket;
+proc pfring_loop*(ring: ptr pfring; looper: proc (h: ptr pfring_pkthdr, p: ptr cstring, user_bytes: ptr cstring) {.cdecl.}; #pfringProcesssPacket;
                   user_bytes: ptr cstring; wait_for_packet: uint8): cint {.pfring.}
 
 #*
@@ -1338,7 +1338,7 @@ proc pfring_bundle_close*(bundle: ptr pfring_bundle) {.cdecl,
 #  @return A non-negative number indicating the topmost header level on success,  a negative value otherwise.
 #
 
-proc pfring_parse_pkt*(pkt: ptr cstring; hdr: ptr pfring_pkthdr; level: uint8; #
+proc pfring_parse_pkt*(pkt: pointer; hdr: ptr pfring_pkthdr; level: uint8; #
                                                                                  # 2..4
                        add_timestamp: uint8; # 0,1
                        add_hash: uint8): cint {.pfring.}
