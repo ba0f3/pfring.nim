@@ -28,6 +28,7 @@ const
 
 {.pragma: pfring,
  cdecl,
+ header: "<pfring.h>",
  importc.}
 
 
@@ -80,7 +81,7 @@ type
     last_matched_rule_id*: uint16
     offset*: pkt_offset
 
-  pfring_extended_pkthdr {.final, pure.} = object
+  pfring_extended_pkthdr {.pure, final.} = object
     timestamp_ns*: uint64
     flags*: uint32
     rx_direction*: uint8
@@ -461,7 +462,7 @@ proc pfring_config*(cpu_percentage: cushort) {.pfring.}
 #  @param wait_for_packet If 0 active wait is used to check the packet availability.
 #  @return 0 on success (pfring_breakloop()), a negative value otherwise.
 #
-proc pfring_loop*(ring: ptr pfring; looper: proc (h: ptr pfring_pkthdr, p: ptr cstring, user_bytes: ptr cstring) {.cdecl.}; #pfringProcesssPacket;
+proc pfring_loop*(ring: ptr pfring; looper: proc (h: ptr pfring_pkthdr, p: cstring, user_bytes: ptr cstring) {.cdecl.}; #pfringProcesssPacket;
                   user_bytes: ptr cstring; wait_for_packet: uint8): cint {.pfring.}
 
 #*
@@ -1338,7 +1339,7 @@ proc pfring_bundle_close*(bundle: ptr pfring_bundle) {.cdecl,
 #  @return A non-negative number indicating the topmost header level on success,  a negative value otherwise.
 #
 
-proc pfring_parse_pkt*(pkt: pointer; hdr: ptr pfring_pkthdr; level: uint8; #
+proc pfring_parse_pkt*(pkt: cstring; hdr: ptr pfring_pkthdr; level: uint8; #
                                                                                  # 2..4
                        add_timestamp: uint8; # 0,1
                        add_hash: uint8): cint {.pfring.}
@@ -1415,8 +1416,7 @@ proc pfring_print_parsed_pkt*(buff: cstring; buff_len: u_int; p: ptr cstring;
 #
 
 proc pfring_print_pkt*(buff: cstring; buff_len: u_int; p: ptr cstring;
-                       len: u_int; caplen: u_int): cint {.cdecl,
-    importc: "pfring_print_pkt".}
+                       len: u_int; caplen: u_int): cint {.pfring.}
 #*
 #  Receive a packet chunk, if enabled via pfring_open() flag.
 #  @param ring                      The PF_RING handle.
